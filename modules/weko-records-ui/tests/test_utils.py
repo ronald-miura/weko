@@ -43,8 +43,9 @@ from weko_records_ui.utils import (
     get_terms,
     get_roles,
     check_items_settings,
-    RoCrateConverter,
-    create_tsv)
+    #RoCrateConverter,
+    #create_tsv
+    )
 import base64
 from unittest.mock import MagicMock
 import copy
@@ -351,6 +352,65 @@ def test_hide_by_email(app,records):
     record['item_1617186419668']['attribute_value_mlt'][1].pop('creatorMails')
     record['item_1617186419668']['attribute_value_mlt'][2].pop('creatorMails')
     record['item_1617349709064']['attribute_value_mlt'][0].pop('contributorMails')
+    assert hide_by_email(test_record)==record
+
+    record = {
+        "item_type_id": "1",
+        "_deposit": {
+            "owners": [1],
+            "owners_ext": {
+                "username": "test username",
+                "displayname": "test displayname",
+                "email": "test@test.com"
+            }
+        },
+        "publish_date": "2021-08-06",
+        "publish_status": "0",
+        "item_1617186331708": {
+            "attribute_name": "Title",
+            "attribute_value_mlt": [
+                {
+                    "subitem_1551255647225": "test title ja",
+                    "subitem_1551255648112": "ja",
+                },
+                {
+                    "subitem_1551255647225": "test title en",
+                    "subitem_1551255648112": "en",
+                },
+            ],
+        }
+    }
+    record['_deposit'].pop("owners_ext")
+    test_record = copy.deepcopy(record)
+    assert hide_by_email(test_record)==record
+
+    record = {
+        "item_type_id": None,
+        "_deposit": {
+            "owners": [1],
+            "owners_ext": {
+                "username": "test username",
+                "displayname": "test displayname",
+                "email": "test@test.com"
+            }
+        },
+        "publish_date": "2021-08-06",
+        "publish_status": "0",
+        "item_1617186331708": {
+            "attribute_name": "Title",
+            "attribute_value_mlt": [
+                {
+                    "subitem_1551255647225": "test title ja",
+                    "subitem_1551255648112": "ja",
+                },
+                {
+                    "subitem_1551255647225": "test title en",
+                    "subitem_1551255648112": "en",
+                },
+            ],
+        }
+    }
+    test_record = copy.deepcopy(record)
     assert hide_by_email(test_record)==record
 
 

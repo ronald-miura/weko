@@ -30,7 +30,9 @@ from elasticsearch import Elasticsearch
 from invenio_indexer import InvenioIndexer
 import pytest
 from invenio_indexer.api import RecordIndexer
+from invenio_pidstore.minters import recid_minter
 from invenio_records import Record
+from invenio_oaiserver.minters import oaiid_minter
 
 from flask import Flask
 from flask_babelex import Babel
@@ -239,7 +241,7 @@ def _database_setup(app, request):
                 app.kvsession_store.redis.flushall()
 
     request.addfinalizer(teardown)
-    return app
+    return a
 
 @pytest.yield_fixture()
 def api(app):
@@ -1141,11 +1143,14 @@ def reindex_settings(i18n_app):
     db_.session.commit()
     return db_
 
-def _create_record(app, item_dict):
+def _create_record(app, item_dict, mint_oaiid=True):
     """Create test record."""
     indexer = RecordIndexer()
     with app.test_request_context():
         record_id = uuid.uuid4()
+        recid = recid_minter(record_id, item_dict)
+        if mint_oaiid:
+            oaiid_minter(record_id, item_dict)
         record = Record.create(item_dict, id_=record_id)
         indexer.index(record)
         return record

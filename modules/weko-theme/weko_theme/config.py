@@ -200,10 +200,6 @@ WEKO_THEME_ADMIN_MENU = [
             {
                 'name': 'Properties',
                 'order': 4
-            },
-            {
-                'name': 'RO-Crate mapping',
-                'order': 5
             }
         ]
     },
