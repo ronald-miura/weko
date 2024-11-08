@@ -101,7 +101,7 @@ def get_weko_contents(getargs):
     )
 
 
-def get_community_id(getargs):  # TODO: Use this to refactor
+def get_community_id(getargs):
     """Get the community data for specific args."""
     ctx = {'community': None}
     community_id = ""

@@ -19,7 +19,7 @@ from flask_login import current_user, login_required
 from invenio_cache import current_cache, current_cache_ext
 from invenio_stats.utils import QueryCommonReportsHelper
 from sqlalchemy.orm.exc import NoResultFound
-from weko_theme.utils import get_community_id, get_weko_contents
+# from weko_theme.utils import get_community_id, get_weko_contents
 from werkzeug.exceptions import NotFound
 from invenio_db import db
 
@@ -383,7 +383,7 @@ def get_widget_page_endpoints(widget_id, lang=''):
 # Based on invenio_pages.views
 def view_widget_page():
     """View user-created WidgetDesignPages."""
-
+    from weko_theme.utils import get_community_id, get_weko_contents
     community_id, ctx = get_community_id(request.args)
     try:
         page = WidgetDesignPage.get_by_url(request.path)
@@ -417,7 +417,7 @@ def view_widget_page():
 def handle_not_found(exception, **extra):
     """Custom blueprint exception handler."""
     assert isinstance(exception, NotFound)  # Only handle 404 errors
-
+    from weko_theme.utils import get_community_id, get_weko_contents
     community_id, ctx = get_community_id(request.args)
     try:  # Check if the page exists
         page = WidgetDesignPage.get_by_url(request.path)
