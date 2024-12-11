@@ -3383,3 +3383,142 @@ def dbsession_clean(exception):
         except:
             db.session.rollback()
     db.session.remove()
+
+
+@workflow_blueprint.route('/workspace')
+@login_required
+def workspace():
+    """Render the activity list.
+    Args:
+
+    Returns:
+        str: render result of weko_workflow/activity_list.html
+    ---
+      get:
+        description: Render the activity list
+        security:
+        - login_required: []
+        parameters:
+          - name: community
+            in: query
+            description: community id
+            schema:
+              type: string
+          - name: tab
+            in: query
+            description: Specify tab name to initial open(todo or all or wait)
+            schema:
+              type: string
+        responses:
+          200:
+            description: render result of weko_workflow/activity_list.html
+            content:
+                text/html
+    """
+
+    if not current_user or not current_user.roles:
+        return abort(403)
+
+    activity = WorkActivity()
+    conditions = filter_all_condition(request.args)
+    ctx = {'community': None}
+    community_id = ""
+    from weko_theme.utils import get_design_layout
+
+    # WEKO_THEME_DEFAULT_COMMUNITY = 'Root Index'
+    # Get the design for widget rendering
+    page, render_widgets = get_design_layout(
+        request.args.get('community') or current_app.config[
+            'WEKO_THEME_DEFAULT_COMMUNITY'])
+
+    tab = request.args.get('tab',WEKO_WORKFLOW_TODO_TAB)
+    if 'community' in request.args:
+        activities, maxpage, size, pages, name_param = activity \
+            .get_activity_list(community_id=request.args.get('community'),
+                               conditions=conditions)
+        comm = GetCommunity.get_community_by_id(request.args.get('community'))
+        ctx = {'community': comm}
+        if comm is not None:
+            community_id = comm.id
+    else:
+        activities, maxpage, size, pages, name_param = activity \
+            .get_activity_list(conditions=conditions)
+
+    # WEKO_WORKFOW_PAGINATION_VISIBLE_PAGES = 1
+    pagination_visible_pages = current_app.config. \
+        get('WEKO_WORKFOW_PAGINATION_VISIBLE_PAGES')
+    # WEKO_WORKFLOW_SELECT_DICT = []
+    options = current_app.config.get('WEKO_WORKFLOW_SELECT_DICT')
+    # WEKO_ITEMS_UI_USAGE_REPORT = ""
+    item_type = current_app.config.get('WEKO_ITEMS_UI_USAGE_REPORT')
+    # WEKO_WORKFLOW_ACTIONS = [
+    # WEKO_WORKFLOW_ACTION_START,
+    # WEKO_WORKFLOW_ACTION_END,
+    # WEKO_WORKFLOW_ACTION_ITEM_REGISTRATION,
+    # WEKO_WORKFLOW_ACTION_APPROVAL,
+    # WEKO_WORKFLOW_ACTION_ITEM_LINK,
+    # WEKO_WORKFLOW_ACTION_IDENTIFIER_GRANT
+    # ]
+    action_status = current_app.config.get('WEKO_WORKFLOW_ACTION')
+    send_mail = current_app.config.get('WEKO_WORKFLOW_ENABLE_AUTO_SEND_EMAIL')
+    req_per_page = current_app.config.get('WEKO_WORKFLOW_PER_PAGE')
+    columns = current_app.config.get('WEKO_WORKFLOW_COLUMNS')
+    filters = current_app.config.get('WEKO_WORKFLOW_FILTER_COLUMNS')
+    # WEKO_WORKFLOW_SEND_MAIL_USER_GROUP = {}
+    send_mail_user_group = current_app.config.get(
+        'WEKO_WORKFLOW_SEND_MAIL_USER_GROUP')
+    # WEKO_WORKFLOW_ENABLE_SHOW_ACTIVITY = False
+    enable_show_activity = current_app.config[
+        'WEKO_WORKFLOW_ENABLE_SHOW_ACTIVITY']
+
+    if enable_show_activity:
+        get_application_and_approved_date(activities, columns)
+        get_workflow_item_type_names(activities)
+
+    from weko_user_profiles.config import WEKO_USERPROFILES_ADMINISTRATOR_ROLE
+    admin_role = WEKO_USERPROFILES_ADMINISTRATOR_ROLE
+    has_admin_role = False
+    for role in current_user.roles:
+        if role == admin_role:
+            has_admin_role = True
+            break
+    send_mail = has_admin_role and send_mail
+
+    return render_template(
+        # 'weko_workflow/activity_list.html',
+        'weko_workflow/workspace.html',
+        page=page,
+        pages=pages,
+        name_param=name_param,
+        size=size,
+        tab=tab,
+        maxpage=maxpage,
+        render_widgets=render_widgets,
+        enable_show_activity=enable_show_activity,
+        activities=activities,
+        community_id=community_id,
+        columns=columns,
+        send_mail=send_mail,
+        req_per_page=req_per_page,
+        pagination_visible_pages=pagination_visible_pages,
+        options=options,
+        item_type=item_type,
+        action_status=action_status,
+        filters=filters,
+        send_mail_user_group=send_mail_user_group,
+        delete_activity_log_enable=current_app.config.get("DELETE_ACTIVITY_LOG_ENABLE"),
+        activitylog_roles=current_app.config.get("WEKO_WORKFLOW_ACTIVITYLOG_ROLE_ENABLE"),
+        **ctx
+    )
+
+# デフォルト条件設定　guan.shuang 20241211 start
+@workflow_blueprint.route('/workspaceDefaultCon')
+@login_required
+def workspaceDefaultConditionsSetting():
+        
+        print("==========guan.shuang workspace workspaceIDefaultCon =========")
+        
+        return render_template(
+        'weko_workflow/workspaceIDefaultCon.html'
+    )
+# デフォルト条件設定　guan.shuang 20241211 end
