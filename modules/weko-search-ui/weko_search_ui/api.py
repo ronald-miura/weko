@@ -169,6 +169,11 @@ def get_search_detail_keyword(str):
     res = sm.get()
     options = None
     key_options = dict()
+
+    print("=======guan.shuang get_search_detail_keyword==========")
+    print(res)
+    print("=======guan.shuang get_search_detail_keyword==========")
+    
     if res:
         options = res.search_conditions
     else:
@@ -214,6 +219,9 @@ def get_search_detail_keyword(str):
     key_options_str.replace("False", "false")
     key_options_str.replace("True", "true")
 
+    print("=======guan.shuang get_search_detail_keyword  key_options_str start ==========")
+    # print(key_options_str)
+    print("=======guan.shuang get_search_detail_keyword  key_options_str end ==========")
     return key_options_str
 
 
