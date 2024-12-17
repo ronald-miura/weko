@@ -3522,3 +3522,13 @@ def workspaceDefaultConditionsSetting():
         'weko_workflow/workspaceIDefaultCon.html'
     )
 # デフォルト条件設定　guan.shuang 20241211 end
+
+@workflow_blueprint.route('/item_registration', endpoint='itemregister')
+@login_required
+def itemregister():
+        
+        print("========== workspace item_register =========")
+        
+        return render_template(
+        'weko_workflow/item_register.html'
+    )
