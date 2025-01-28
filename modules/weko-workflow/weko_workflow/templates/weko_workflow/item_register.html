@@ -1,0 +1,384 @@
+{#
+    # This file is part of WEKO3.
+    # (License info omitted for brevity)
+#}
+
+{%- extends config.WEKO_WORKFLOW_BASE_TEMPLATE %}
+{%- from "invenio_communities/macros.html" import community_header %}
+
+{%- block css %}
+{{ super() }}
+{% assets "workflow_datepicker_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+{% assets "workflow_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">
+{% endassets %}
+<link rel="stylesheet" href="{{ url_for('static', filename='weko_workflow/style.css') }}">
+
+<style>
+  #content {
+    display: none;
+  }
+
+  .item-register-table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 900px;
+    margin: auto;
+    table-layout: fixed;
+  }
+
+  .item-register-table th, .item-register-table td {
+    border: 1px solid #ccc;
+    vertical-align: top;
+    padding: 10px;
+    box-sizing: border-box;
+    width: 33.3%;
+  }
+
+  .item-register-table th {
+    text-align: left;
+    font-size: 1.2em;
+  }
+
+  .item-register-table tr.height-fixed-row > td,
+  .item-register-table tr.height-fixed-row > th {
+    height: 15px;
+    vertical-align: top;
+  }
+
+  /* DOI入力 */
+  #doiInput {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* 本文ファイル欄 */
+  #fileDropArea {
+    width: 100%;
+    text-align:center;
+    box-sizing:border-box;
+    height:25px; 
+    position:relative;
+    padding:5px;
+  }
+
+  #fileTextInput {
+    width:100%;
+    box-sizing:border-box;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+  }
+
+  /* メタデータ欄 */
+  #metadataSection input[type=text] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .register-button-container {
+    margin-top:20px; /* テーブルと登録ボタンの間に余白を作成 */
+    margin-bottom:20px; /* 下にも余白を追加する場合 */
+    text-align:right;
+    max-width:900px;
+    margin:auto;
+  }
+
+  /* 非活性時、グレー背景のスタイル */
+  #registerButton[disabled] {
+    background-color: #ccc;
+    color: #666;
+    border: none;
+  }
+</style>
+
+{%- endblock css %}
+
+{%- block javascript %}
+{{ super() }}
+{%- assets "workflow_activity_list_js" %}
+<script src="{{ ASSET_URL }}"></script>{% endassets %}
+{% assets "weko_theme_js_widget" %}
+<script src="{{ ASSET_URL }}"></script>{% endassets %}
+
+<script>
+  // トグルボタン処理
+  const button = document.getElementById('toggleButton');
+  const content = document.getElementById('content');
+
+  if (button && content) {
+    button.addEventListener('click', function () {
+      if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        content.style.display = 'none';
+      } else {
+        content.classList.add('expanded');
+        content.style.display = 'block';
+      }
+    });
+  }
+</script>
+
+{%- endblock javascript %}
+
+{%- block page_body_tabs %}
+{% from "weko_theme/macros/tabs_selector.html" import tabs_selector with context %}
+{{ tabs_selector('workspace',community_id) }}
+{%- endblock page_body_tabs %}
+
+{%- block page_header %}
+{%-if not community %}
+{{ super() }}
+{%- endif %}
+{%- endblock page_header %}
+
+{%- block page_footer %}
+{%-if not community%}
+{{ super() }}
+{%- endif %}
+{%- endblock page_footer %}
+
+{% block page_body %}
+{%-if not community %}
+{{ super() }}
+{%- else %}
+<div class="communities">
+  <div id="community-id" name="community-id" hidden>{{ community.id }}</div>
+  {{ community_header(community, subtitle='') }}
+  <div id="page_body" class="grid-stack hidden" {%- if render_widgets %}style="display: None;" {%- endif %}>
+    <div id="main_contents">
+      {{ super() }}
+    </div>
+  </div>
+  {%- from "weko_theme/macros/footer-community.html" import community_footer_widget %}
+  {{ community_footer_widget(render_widgets, community, link=False, subtitle='') }}
+</div>
+<div class="communities"></div>
+{%- endif %}
+{% endblock page_body %}
+
+{%- block page_body_main %}
+<div role="navigation">
+  <ul class="nav nav-tabs">
+    <li role="presentation" {%-if tab == 'todo' %} class="active" {%- endif%}>
+      <a href="javascript:void(0);" class="activity_tab" data-tab="todo">アイテム一覧</a></li>
+
+    <li role="presentation" {%-if tab == 'wait' %} class="active" {%- endif%}>
+      <a href="{{ url_for('weko_workflow.itemregister') }}" class="activity_tab" data-tab="wait">アイテム登録</a>
+    </li>
+
+    <li class="dropdown">
+      <a id="toggleButton" class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)"
+      aria-expanded="false">{{_('絞り込み表示')}}<strong class="caret"></strong></a>
+    </li>
+
+    <li role="presentation" style="flex: 1; display: flex; justify-content: center; align-items: center; margin: 0 10px;">
+        <div class="search-container" style="text-align: center; margin-bottom: 0;">
+            <input
+              type="text"
+              id="searchInput"
+              class="form-control"
+              placeholder="Search "
+              style="width: 300px; display: inline-block;"
+            />
+        </div>
+    </li>
+
+    <li role="presentation" style="float: right; margin-right: 20px;">
+        <button id="export_button" class="btn btn-primary">アイテム出力</button>
+    </li>
+  </ul>
+  {%- if send_mail -%}
+    <button class="btn btn-default style-button pull-right" id="btn_send_mail">
+      <span class="glyphicon glyphicon-send"></span>&nbsp; {{ _('Send Mail') }}
+    </button>
+  {%- endif %}
+</div>
+<br>
+<div class="row">
+  <form class="form-horizontal col-sm-7" action="javascript:void(0);" id="filter_form">
+    <div class="col-sm-12">
+      <div id="workflow_group"></div>
+      <div id="user_group"></div>
+      <div id="item_group"></div>
+      <div id="status_group"></div>
+    </div>
+  </form>
+  <input type="hidden" id="action_doing" name="action_doing" value="{{_('action_doing')}}">
+  <input type="hidden" id="action_done" name="action_done" value="{{_('action_done')}}">
+  <input type="hidden" id="action_cancel" name="action_cancel" value="{{_('action_canceled')}}">
+  {%-if name_param != '' %}
+  <input type="hidden" id="change_page_param" value="{{name_param}}">
+  {%- endif%}
+</div>
+
+<div class="form-inline flow-root">
+  <div id="content">
+    <div class="row row-4">
+      <h3>・リソースタイプ（47個）</h3>
+      <h3>・査読有無（リソースタイプ：論文の場合）</h3>
+      <h3>・論文への関連有無（リソースタイプ：根拠データの場合）</h3>
+      <h3>・資金別情報</h3>
+      <h3>・本文ファイル有無</h3>
+      <h3>・お気に入り有無</h3>
+      <div class="col-xs-1 col-xs-offset-3">
+        <button id="detail-search-btn" type="button" class="btn btn-primary" onclick="location.reload();"
+          style="float:right;">
+          <span class="glyphicon glyphicon-search"></span>
+          {{_('絞り込み表示')}}&nbsp
+        </button>
+      </div>
+      <div class="col-xs-1">
+        <button id="clear-search-btn" type="button" class="btn btn-default" onclick="location.reload();">
+          <span class="glyphicon glyphicon-remove"></span>
+          {{_('クリア')}}&nbsp
+        </button>
+      </div>
+      <div class="col-xs-1">
+        <button id="clear-search-btn" type="button" class="btn btn-primary" onclick="location.reload();"
+        style="float:right;">
+          <span class="glyphicon glyphicon-save"></span>
+          {{_('デファクト条件設定')}}&nbsp
+        </button>
+      </div>
+      <div class="col-xs-1">
+        <button id="clear-search-btn" type="button" class="btn btn-default" onclick="location.reload();">
+          <span class="glyphicon glyphicon-remove"></span>
+          {{_('デファクト条件設定リセット')}}&nbsp
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- レイアウト変更したアイテム登録画面 -->
+<table class="item-register-table">
+    <div class="register-button-container">
+        <button id="registerButton" disabled class="btn" style="padding:5px 20px;">登録</button>
+    </div>
+    <tr class="height-fixed-row">
+        <th>DOI識別子</th>
+        <th>本文ファイル</th>
+        <th>メタデータ</th>
+    </tr>
+    <tr class="height-fixed-row">
+        <td>
+            <input type="text" id="doiInput" placeholder="DOIを入力してください">
+        </td>
+        <td>
+            <div id="fileDropArea">
+                <input type="text" id="fileTextInput" placeholder="ドラッグ＆ドロップまたは入力">
+            </div>
+        </td>
+        <td>
+            <div id="metadataSection" style="display:none;">
+                <label for="titleInput">Title*</label><br>
+                <input type="text" id="titleInput">
+            </div>
+        </td>
+    </tr>
+</table>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const doiInput = document.getElementById('doiInput');
+    const metadataSection = document.getElementById('metadataSection');
+    const titleInput = document.getElementById('titleInput');
+    const registerButton = document.getElementById('registerButton');
+    const fileDropArea = document.getElementById('fileDropArea');
+    const fileTextInput = document.getElementById('fileTextInput');
+
+    function updateRegisterButtonState() {
+        if (doiInput.value.trim() !== '' && titleInput.value.trim() !== '') {
+            registerButton.disabled = false;
+            registerButton.classList.add('btn-primary');
+        } else {
+            registerButton.disabled = true;
+            registerButton.classList.remove('btn-primary');
+        }
+    }
+
+    // DOI入力時の処理
+    doiInput.addEventListener('input', function() {
+        if (doiInput.value.trim() !== '') {
+            metadataSection.style.display = 'block';
+            titleInput.value = 'サンプルタイトル';
+        } else {
+            metadataSection.style.display = 'none';
+            titleInput.value = '';
+        }
+        updateRegisterButtonState();
+    });
+
+    titleInput.addEventListener('input', updateRegisterButtonState);
+    fileTextInput.addEventListener('input', function() {
+        // 必要ならここでボタン状態更新可能
+    });
+
+    // ファイルドラッグ＆ドロップ
+    fileDropArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+    });
+    fileDropArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            fileTextInput.value = file.name;
+        }
+    });
+
+    registerButton.addEventListener('click', function() {
+        alert('登録できました');
+    });
+});
+</script>
+
+<!-- 出力用モーダルなど -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const dialogHtml = `
+        <div id="export_dialog" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: center; align-items: center;">
+                <h5 class="modal-title" style="text-align: center; flex: 1;">以下のオプションを選択してください：</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px;">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                <p style="margin-bottom: 20px;"></p>
+                <div class="button-container" style="display: flex; justify-content: center; gap: 10px;">
+                <button id="export_selected" class="btn btn-primary">選択アイテム出力</button>
+                <button id="export_all" class="btn btn-danger">全て出力</button>
+                <button id="export_cancel" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML("beforeend", dialogHtml);
+
+    document.getElementById("export_button").addEventListener("click", function () {
+        $("#export_dialog").modal("show");
+    });
+
+    document.getElementById("export_selected").addEventListener("click", function () {
+        alert("選択アイテムを出力します");
+        $("#export_dialog").modal("hide");
+    });
+
+    document.getElementById("export_all").addEventListener("click", function () {
+        alert("全てのアイテムを出力します");
+        $("#export_dialog").modal("hide");
+    });
+  });
+</script>
+
+{%- endblock page_body_main %}
