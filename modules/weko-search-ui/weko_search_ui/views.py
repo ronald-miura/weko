@@ -120,7 +120,9 @@ def search():
     # disply_setting = dict(size=display_number, timestamp=ts)
     disply_setting = dict(size=display_number)
 
+    print("===========guan.shuang @blueprint.route(/search/index) start ===========")
     detail_condition = get_search_detail_keyword("")
+    print("===========guan.shuang @blueprint.route(/search/index) end ===========")
 
     export_settings = AdminSettings.get(
         "item_export_settings"
