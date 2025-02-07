@@ -1603,48 +1603,78 @@
       </div>
     </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-        // ダイアログの生成
-        const dialogHtml = `
-            <div id="export_dialog" class="modal fade" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                <div class="modal-header" style="display: flex; justify-content: center; align-items: center;">
-                    <h5 class="modal-title" style="text-align: center; flex: 1;">以下のオプションを選択してください：</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px;">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-                    <p style="margin-bottom: 20px;"></p>
-                    <div class="button-container" style="display: flex; justify-content: center; gap: 10px;">
-                    <button id="export_selected" class="btn btn-primary">選択アイテム出力</button>
-                    <button id="export_all" class="btn btn-danger">全て出力</button>
-                    <button id="export_cancel" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
-                    </div>
-                </div>
-                </div>
-            </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML("beforeend", dialogHtml);
-
-        // ボタンイベントの設定
-        document.getElementById("export_button").addEventListener("click", function () {
-            $("#export_dialog").modal("show");
-        });
-
-        document.getElementById("export_selected").addEventListener("click", function () {
-            alert("選択アイテムを出力します");
-            $("#export_dialog").modal("hide");
-        });
-
-        document.getElementById("export_all").addEventListener("click", function () {
-            alert("全てのアイテムを出力します");
-            $("#export_dialog").modal("hide");
-        });
-        });
-      </script>
+      document.addEventListener("DOMContentLoaded", function () {
+          // ダイアログの生成
+          const dialogHtml = `
+              <div id="export_dialog" class="modal fade" tabindex="-1" role="dialog">
+              <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                  <div class="modal-header" style="display: flex; justify-content: center; align-items: center;">
+                      <h5 class="modal-title" style="text-align: center; flex: 1;">以下のオプションを選択してください：</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px;">
+                      <span aria-hidden="true">&times;</span>
+                      </button>
+                  </div>
+                  <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                      <p style="margin-bottom: 20px;"></p>
+                      <div class="button-container" style="display: flex; justify-content: center; gap: 10px;">
+                      <button id="export_selected" class="btn btn-primary">選択アイテム出力</button>
+                      <button id="export_all" class="btn btn-danger">全て出力</button>
+                      <button id="export_cancel" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+                      <button id="error_button" class="btn btn-warning">エラー</button>
+                      </div>
+                  </div>
+                  </div>
+              </div>
+              </div>
+          `;
+          document.body.insertAdjacentHTML("beforeend", dialogHtml);
+      
+          // ボタンイベントの設定
+          document.getElementById("export_button").addEventListener("click", function () {
+              $("#export_dialog").modal("show");
+          });
+      
+          document.getElementById("export_selected").addEventListener("click", function () {
+              alert("選択アイテムを出力します");
+              $("#export_dialog").modal("hide");
+          });
+      
+          document.getElementById("export_all").addEventListener("click", function () {
+              alert("全てのアイテムを出力します");
+              $("#export_dialog").modal("hide");
+          });
+      
+          document.getElementById("error_button").addEventListener("click", function () {
+              showErrorModal("登録アイテムがありません");
+          });
+      });
+      
+      function showErrorModal(message) {
+          const errorDialogHtml = `
+              <div id="error_dialog" class="modal fade" tabindex="-1" role="dialog">
+              <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                  <div class="modal-header" style="display: flex; justify-content: center; align-items: center;">
+                      <h5 class="modal-title" style="text-align: center; flex: 1;">error：</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px;">
+                      <span aria-hidden="true">&times;</span>
+                      </button>
+                  </div>
+                  <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                      <p>${message}</p>
+                  </div>
+                  <div class="modal-footer" style="display: flex; justify-content: center;">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+                  </div>
+                  </div>
+              </div>
+              </div>
+          `;
+          document.body.insertAdjacentHTML("beforeend", errorDialogHtml);
+          $("#error_dialog").modal("show");
+      }
+  </script>
     {%- endblock page_body_main %}
 
     

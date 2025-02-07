@@ -3520,6 +3520,7 @@ def workspace():
         return render_template(
         # 'weko_workflow/workspaceItemList.html'
         'weko_workflow/workspace_base.html'
+        # 'weko_workflow/workspace.html'
     )
 
 # デフォルト条件設定　guan.shuang 20241211 start

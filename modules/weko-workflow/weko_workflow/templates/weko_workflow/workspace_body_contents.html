@@ -71,13 +71,20 @@
 <div id="invenio-search">
   <div id="search_res" ng-controller="searchResCtrl">
     <div class="panel panel-default" ng-if="typeIndexList() != 'root'">
-      <div role="navigation" style="display: flex; flex-direction: column; width: 300px;">
-        <input type="button" class="" id="btn_todo1" value="{{_('アイテム出力')}}"
-          style="margin-bottom: 10px; width: 50%; text-align: left;" />
-        <input type="text" class=" -" id="" style="margin-bottom: 10px; width: 150%; text-align: left;"
-          placeholder="Type and press enter to search" />
-        <span><strong>tarou tanaka | Tokyo University</strong></span>
-      </div>
+      <div class="panel panel-default" ng-if="typeIndexList() != 'root'">
+        <div role="navigation" style="display: flex; flex-direction: column; width: 300px; margin-left: 10px;">
+            <!-- <button id="export_button"  class="btn btn-primary"  value="{{_('アイテム出力')}}"
+                style="margin-top: 5px; margin-bottom: 10px; width: 50%; text-align: center;" >アイテム出力</button> -->
+                <button id="export_button" class="btn btn-primary" style="margin-top: 5px; margin-bottom: 10px; width: 50%; text-align: center;">アイテム出力</button>
+            <input type="text" class=" -" id="" style="margin-top: -5px; margin-bottom: 10px; width: 110%;text-align: left; padding-left: 5px;"
+                placeholder=" 入力後、Enterキーを押して検索してください">
+                <!-- 日本語-->
+                 <!-- 入力後、Enterキーを押して検索してください -->
+                <!-- 英語 -->
+                <!-- Type and press enter to search -->
+                 <!-- <div style="color: red; white-space: nowrap;">検索条件と十分に一致する結果が見つかりません</div> -->
+            <span><strong>tarou tanaka | Tokyo University</strong></span>
+        </div>
 
       <div id="search-result-body" class="panel-body">
         <div id="index_item_list" ng-if="vm.invenioSearchResults.hits.total">
@@ -343,7 +350,7 @@
                   <div class="panel panel-default panel-default-2" ng-repeat="">
                     <div class="panel-body" style="display: flex; flex-direction: column; align-items: left;">
                       <div id="groupYear" style="display: block;">
-                        <h3>2025</h3>
+                        <!-- <h3>2025</h3> -->
                       </div>
                       <table class="table table-striped table-bordered" style="table-layout: auto;">
                         <tr>
@@ -702,5 +709,78 @@
           textSpan.classList.add('text-hidden');
           element.textContent = 'see more';
       }
+  }
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      // ダイアログの生成
+      const dialogHtml = `
+          <div id="export_dialog" class="modal fade" tabindex="-1" role="dialog">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+              <div class="modal-header" style="display: flex; justify-content: center; align-items: center;">
+                  <h5 class="modal-title" style="text-align: center; flex: 1;">以下のオプションを選択してください：</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px;">
+                  <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                  <p style="margin-bottom: 20px;"></p>
+                  <div class="button-container" style="display: flex; justify-content: center; gap: 10px;">
+                  <button id="export_selected" class="btn btn-primary">選択アイテム出力</button>
+                  <button id="export_all" class="btn btn-danger">全て出力</button>
+                  <button id="export_cancel" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+                  <button id="error_button" class="btn btn-warning">エラー</button>
+                  </div>
+              </div>
+              </div>
+          </div>
+          </div>
+      `;
+      document.body.insertAdjacentHTML("beforeend", dialogHtml);
+  
+      // ボタンイベントの設定
+      document.getElementById("export_button").addEventListener("click", function () {
+          $("#export_dialog").modal("show");
+      });
+  
+      document.getElementById("export_selected").addEventListener("click", function () {
+          alert("選択アイテムを出力します");
+          $("#export_dialog").modal("hide");
+      });
+  
+      document.getElementById("export_all").addEventListener("click", function () {
+          alert("全てのアイテムを出力します");
+          $("#export_dialog").modal("hide");
+      });
+  
+      document.getElementById("error_button").addEventListener("click", function () {
+          showErrorModal("登録アイテムがありません");
+      });
+  });
+  
+  function showErrorModal(message) {
+      const errorDialogHtml = `
+          <div id="error_dialog" class="modal fade" tabindex="-1" role="dialog">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+              <div class="modal-header" style="display: flex; justify-content: center; align-items: center;">
+                  <h5 class="modal-title" style="text-align: center; flex: 1;">error：</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px;">
+                  <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                  <p>${message}</p>
+              </div>
+              <div class="modal-footer" style="display: flex; justify-content: center;">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+              </div>
+              </div>
+          </div>
+          </div>
+      `;
+      document.body.insertAdjacentHTML("beforeend", errorDialogHtml);
+      $("#error_dialog").modal("show");
   }
 </script>
